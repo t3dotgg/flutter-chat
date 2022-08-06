@@ -2,6 +2,23 @@ import 'package:flutter/material.dart';
 
 import 'package:tmi/tmi.dart' as tmi;
 
+// extension HexColor on Color {
+//   /// String is in the format "aabbcc" or "ffaabbcc" with an optional leading "#".
+//   static Color fromHex(String hexString) {
+//     final buffer = StringBuffer();
+//     if (hexString.length == 6 || hexString.length == 7) buffer.write('ff');
+//     buffer.write(hexString.replaceFirst('#', ''));
+//     return Color(int.parse(buffer.toString(), radix: 16));
+//   }
+
+//   /// Prefixes a hash sign if [leadingHashSign] is set to `true` (default is `true`).
+//   String toHex({bool leadingHashSign = true}) => '${leadingHashSign ? '#' : ''}'
+//       '${alpha.toRadixString(16).padLeft(2, '0')}'
+//       '${red.toRadixString(16).padLeft(2, '0')}'
+//       '${green.toRadixString(16).padLeft(2, '0')}'
+//       '${blue.toRadixString(16).padLeft(2, '0')}';
+// }
+
 class ChatView extends StatefulWidget {
   // This widget is the home page of your application. It is stateful, meaning
   // that it has a State object (defined below) that contains fields that affect
@@ -19,8 +36,9 @@ class ChatView extends StatefulWidget {
 class Message {
   var name;
   var body;
+  var color;
 
-  Message(this.name, this.body);
+  Message(this.name, this.body, this.color);
 }
 
 class _ChatState extends State<ChatView> {
@@ -38,25 +56,42 @@ class _ChatState extends State<ChatView> {
     client.on("message", (channel, userstate, message, self) {
       if (self) return;
 
+      print(userstate);
+
       print("${channel}| ${userstate['display-name']}: ${message}");
 
-      setState(() => messages.add(Message(userstate['display-name'], message)));
+      setState(() => messages.add(
+          Message(userstate['display-name'], message, userstate['color'])));
     });
   }
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.all(10),
+      padding: const EdgeInsets.all(10),
       child: SingleChildScrollView(
-          child: Column(
-        children: messages
-            .map((e) => Row(children: [
-                  Text("${e.name}: ", style: TextStyle(fontSize: 25)),
-                  Text("${e.body}", style: TextStyle(fontSize: 25)),
-                ]))
-            .toList(),
-      )),
+        child: Column(
+          mainAxisSize: MainAxisSize.max,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: messages
+              .map(
+                (e) => RichText(
+                  text: TextSpan(
+                    style: DefaultTextStyle.of(context).style,
+                    children: <TextSpan>[
+                      TextSpan(
+                          text: "${e.name}: ",
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                          )),
+                      TextSpan(text: e.body),
+                    ],
+                  ),
+                ),
+              )
+              .toList(),
+        ),
+      ),
     );
   }
 }
