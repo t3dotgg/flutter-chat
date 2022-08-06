@@ -25,6 +25,7 @@ class ChatPage extends HookWidget {
   @override
   Widget build(BuildContext context) {
     final channelName = useState("");
+    final connected = useState(false);
     // This widget is the home page of your application. It is stateful, meaning
     // that it has a State object (defined below) that contains fields that affect
     // how it looks.
@@ -34,7 +35,15 @@ class ChatPage extends HookWidget {
     // used by the build method of the State. Fields in a Widget subclass are
     // always marked "final".
 
-    if (channelName.value == "") return Text("hi");
+    if (connected.value == false)
+      return TextField(
+        decoration: InputDecoration(
+          border: OutlineInputBorder(),
+          hintText: 'Choose Channel',
+        ),
+        onChanged: (current) => channelName.value = current.toString(),
+        onSubmitted: (_c) => connected.value = true,
+      );
 
     return ChatView();
   }
@@ -79,8 +88,6 @@ class _ChatState extends State<ChatView> {
 
     client.on("message", (channel, userstate, message, self) {
       if (self) return;
-
-      print(userstate);
 
       print("${channel}| ${userstate['display-name']}: ${message}");
 
