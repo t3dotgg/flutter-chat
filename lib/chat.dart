@@ -69,28 +69,39 @@ class _ChatState extends State<ChatView> {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(10),
-      child: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.max,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: messages
-              .map(
-                (e) => RichText(
-                  text: TextSpan(
-                    style: DefaultTextStyle.of(context).style,
-                    children: <TextSpan>[
-                      TextSpan(
-                          text: "${e.name}: ",
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                          )),
-                      TextSpan(text: e.body),
-                    ],
-                  ),
-                ),
-              )
-              .toList(),
-        ),
+      child: Column(
+        children: [
+          Expanded(
+            child: SingleChildScrollView(
+                child: Column(
+              mainAxisSize: MainAxisSize.max,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: messages
+                  .map(
+                    (e) => RichText(
+                      text: TextSpan(
+                        style: DefaultTextStyle.of(context).style,
+                        children: <TextSpan>[
+                          TextSpan(
+                              text: "${e.name}: ",
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                              )),
+                          TextSpan(text: e.body),
+                        ],
+                      ),
+                    ),
+                  )
+                  .toList(),
+            )),
+          ),
+          const TextField(
+            decoration: InputDecoration(
+              border: OutlineInputBorder(),
+              hintText: 'Enter a search term',
+            ),
+          ),
+        ],
       ),
     );
   }
