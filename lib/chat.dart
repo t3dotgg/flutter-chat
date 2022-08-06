@@ -45,7 +45,7 @@ class ChatPage extends HookWidget {
         onSubmitted: (_c) => connected.value = true,
       );
 
-    return ChatView();
+    return ChatView(channelName.value);
   }
 
   @override
@@ -53,6 +53,7 @@ class ChatPage extends HookWidget {
 }
 
 class ChatView extends StatefulWidget {
+  var channelName;
   // This widget is the home page of your application. It is stateful, meaning
   // that it has a State object (defined below) that contains fields that affect
   // how it looks.
@@ -60,6 +61,7 @@ class ChatView extends StatefulWidget {
   // This class is the configuration for the state. It holds the values (in this
   // case the title) provided by the parent (in this case the App widget) and
   // used by the build method of the State. Fields in a Widget subclass are
+  ChatView(this.channelName);
   // always marked "final".
 
   @override
@@ -78,9 +80,11 @@ class _ChatState extends State<ChatView> {
   List<Message> messages = [];
   var client;
 
+  var channel;
+
   void initState() {
     this.client = tmi.Client(
-      channels: "theo",
+      channels: widget.channelName,
       secure: true,
     );
 
@@ -101,6 +105,8 @@ class _ChatState extends State<ChatView> {
     return Padding(
       padding: const EdgeInsets.all(10),
       child: Column(
+        mainAxisSize: MainAxisSize.max,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Expanded(
             child: SingleChildScrollView(
