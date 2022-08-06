@@ -36,6 +36,8 @@ dependencies:
   cupertino_icons: ^1.0.2
   tmi: ^0.0.4
   flutter_hooks: ^0.18.5+1
+  http: ^0.13.5
+  dio: ^4.0.6
 
 dev_dependencies:
   flutter_test:

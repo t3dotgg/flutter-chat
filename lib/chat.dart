@@ -4,6 +4,10 @@ import 'package:tmi/tmi.dart' as tmi;
 
 import 'package:flutter_hooks/flutter_hooks.dart';
 
+import 'package:http/http.dart' as http;
+
+import 'package:dio/dio.dart';
+
 extension HexColor on Color {
   /// String is in the format "aabbcc" or "ffaabbcc" with an optional leading "#".
   static Color fromHex(String hexString) {
@@ -138,14 +142,46 @@ class _ChatState extends State<ChatView> {
               ),
             ),
           ),
-          const TextField(
-            decoration: InputDecoration(
-              border: OutlineInputBorder(),
-              hintText: 'Enter a search term',
-            ),
-          ),
+          MessageInput(),
         ],
       ),
     );
   }
+}
+
+class MessageInput extends HookWidget {
+  var client = http.Client();
+
+  @override
+  Widget build(BuildContext context) {
+    final message = useState("");
+    // This widget is the home page of your application. It is stateful, meaning
+    // that it has a State object (defined below) that contains fields that affect
+    // how it looks.
+
+    // This class is the configuration for the state. It holds the values (in this
+    // case the title) provided by the parent (in this case the App widget) and
+    // used by the build method of the State. Fields in a Widget subclass are
+    // always marked "final".
+
+    return TextField(
+      decoration: InputDecoration(
+        border: OutlineInputBorder(),
+        hintText: 'Choose Channel',
+      ),
+      onChanged: (current) => message.value = current.toString(),
+      onSubmitted: (current) async {
+        print("CURRENTLY SENDING");
+        print(current);
+
+        var res = await Dio().get(
+            "https://hacky-chat-sends.vercel.app/api/chat-hell?channel=theo&message=${message.value}&username=probabynottheo&token=39hb0f9hsyc08yi7xbb2t6rha2glwe");
+
+        print(res);
+      },
+    );
+  }
+
+  @override
+  State<ChatView> createState() => _ChatState();
 }
