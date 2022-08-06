@@ -113,28 +113,30 @@ class _ChatState extends State<ChatView> {
         children: [
           Expanded(
             child: SingleChildScrollView(
-                child: Column(
-              mainAxisSize: MainAxisSize.max,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: messages
-                  .map(
-                    (e) => RichText(
-                      text: TextSpan(
-                        style: DefaultTextStyle.of(context).style,
-                        children: <TextSpan>[
-                          TextSpan(
-                              text: "${e.name}: ",
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: HexColor.fromHex(e.color),
-                              )),
-                          TextSpan(text: e.body),
-                        ],
+              reverse: true,
+              child: Column(
+                mainAxisSize: MainAxisSize.max,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: messages
+                    .map(
+                      (e) => RichText(
+                        text: TextSpan(
+                          style: DefaultTextStyle.of(context).style,
+                          children: <TextSpan>[
+                            TextSpan(
+                                text: "${e.name}: ",
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: HexColor.fromHex(e.color),
+                                )),
+                            TextSpan(text: e.body),
+                          ],
+                        ),
                       ),
-                    ),
-                  )
-                  .toList(),
-            )),
+                    )
+                    .toList(),
+              ),
+            ),
           ),
           const TextField(
             decoration: InputDecoration(
