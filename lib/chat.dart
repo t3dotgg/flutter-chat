@@ -16,8 +16,15 @@ class ChatView extends StatefulWidget {
   State<ChatView> createState() => _ChatState();
 }
 
+class Message {
+  var name;
+  var body;
+
+  Message(this.name, this.body);
+}
+
 class _ChatState extends State<ChatView> {
-  List<String> messages = [];
+  List<Message> messages = [];
   var client;
 
   void initState() {
@@ -33,15 +40,23 @@ class _ChatState extends State<ChatView> {
 
       print("${channel}| ${userstate['display-name']}: ${message}");
 
-      setState(() => messages.add("${userstate['display-name']}: ${message}"));
+      setState(() => messages.add(Message(userstate['display-name'], message)));
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-        child: Column(
-      children: messages.map((e) => Text(e)).toList(),
-    ));
+    return Padding(
+      padding: EdgeInsets.all(10),
+      child: SingleChildScrollView(
+          child: Column(
+        children: messages
+            .map((e) => Row(children: [
+                  Text("${e.name}: ", style: TextStyle(fontSize: 25)),
+                  Text("${e.body}", style: TextStyle(fontSize: 25)),
+                ]))
+            .toList(),
+      )),
+    );
   }
 }
