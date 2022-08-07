@@ -29,6 +29,8 @@ class ChatPage extends HookWidget {
   @override
   Widget build(BuildContext context) {
     final channelName = useState("");
+    final userName = useState("");
+    final oauthToken = useState("");
     final connected = useState(false);
     // This widget is the home page of your application. It is stateful, meaning
     // that it has a State object (defined below) that contains fields that affect
@@ -39,17 +41,33 @@ class ChatPage extends HookWidget {
     // used by the build method of the State. Fields in a Widget subclass are
     // always marked "final".
 
-    if (connected.value == false)
-      return TextField(
-        decoration: InputDecoration(
-          border: OutlineInputBorder(),
-          hintText: 'Choose Channel',
+    if (connected.value == false) {
+      return Column(children: [
+        TextField(
+          decoration: const InputDecoration(
+            border: OutlineInputBorder(),
+            hintText: 'Choose Channel',
+          ),
+          onChanged: (current) => channelName.value = current.toString(),
+          onSubmitted: (_c) => connected.value = true,
         ),
-        onChanged: (current) => channelName.value = current.toString(),
-        onSubmitted: (_c) => connected.value = true,
-      );
-
-    return ChatView(channelName.value);
+        TextField(
+          decoration: const InputDecoration(
+            border: OutlineInputBorder(),
+            hintText: 'Username',
+          ),
+          onChanged: (current) => userName.value = current.toString(),
+        ),
+        TextField(
+          decoration: const InputDecoration(
+            border: OutlineInputBorder(),
+            hintText: 'Oauth token',
+          ),
+          onChanged: (current) => oauthToken.value = current.toString(),
+        )
+      ]);
+    }
+    return ChatView(channelName.value, userName.value, oauthToken.value);
   }
 
   @override
@@ -58,6 +76,8 @@ class ChatPage extends HookWidget {
 
 class ChatView extends StatefulWidget {
   var channelName;
+  var userName;
+  var oauthToken;
   // This widget is the home page of your application. It is stateful, meaning
   // that it has a State object (defined below) that contains fields that affect
   // how it looks.
@@ -65,7 +85,7 @@ class ChatView extends StatefulWidget {
   // This class is the configuration for the state. It holds the values (in this
   // case the title) provided by the parent (in this case the App widget) and
   // used by the build method of the State. Fields in a Widget subclass are
-  ChatView(this.channelName);
+  ChatView(this.channelName, this.userName, this.oauthToken);
   // always marked "final".
 
   @override
@@ -142,7 +162,7 @@ class _ChatState extends State<ChatView> {
               ),
             ),
           ),
-          MessageInput(),
+          MessageInput(widget.channelName, widget.userName, widget.oauthToken),
         ],
       ),
     );
@@ -150,7 +170,13 @@ class _ChatState extends State<ChatView> {
 }
 
 class MessageInput extends HookWidget {
+  var channelName;
+  var userName;
+  var oauthToken;
+
   var client = http.Client();
+
+  MessageInput(this.channelName, this.userName, this.oauthToken);
 
   @override
   Widget build(BuildContext context) {
@@ -174,9 +200,12 @@ class MessageInput extends HookWidget {
         print("CURRENTLY SENDING");
         print(current);
 
-        var res = await Dio().get(
-            "https://hacky-chat-sends.vercel.app/api/chat-hell?channel=theo&message=${message.value}&username=probabynottheo&token=39hb0f9hsyc08yi7xbb2t6rha2glwe");
+        var postUrl =
+            "https://hacky-chat-sends.vercel.app/api/chat-hell?channel=${channelName}&message=${Uri.encodeComponent(message.value)}&username=${userName}&token=${oauthToken}";
 
+        print(postUrl);
+
+        var res = await Dio().get(postUrl);
         print(res);
       },
     );
