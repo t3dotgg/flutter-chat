@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 
 import 'package:tmi/tmi.dart' as tmi;
@@ -7,6 +9,9 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:http/http.dart' as http;
 
 import 'package:dio/dio.dart';
+
+final kappa =
+    "https://static-cdn.jtvnw.net/emoticons/v2/80393/default/light/3.0";
 
 extension HexColor on Color {
   /// String is in the format "aabbcc" or "ffaabbcc" with an optional leading "#".
@@ -28,10 +33,10 @@ extension HexColor on Color {
 class ChatPage extends HookWidget {
   @override
   Widget build(BuildContext context) {
-    final channelName = useState("");
+    final channelName = useState("lukepighetti");
     final userName = useState("");
     final oauthToken = useState("");
-    final connected = useState(false);
+    final connected = useState(true);
     // This widget is the home page of your application. It is stateful, meaning
     // that it has a State object (defined below) that contains fields that affect
     // how it looks.
@@ -97,7 +102,9 @@ class Message {
   var body;
   var color;
 
-  Message(this.name, this.body, this.color);
+  var renderedContents;
+
+  Message(this.name, this.body, this.color, this.renderedContents);
 }
 
 class _ChatState extends State<ChatView> {
@@ -117,13 +124,19 @@ class _ChatState extends State<ChatView> {
     client.on("message", (channel, userstate, message, self) {
       if (self) return;
 
-      print("${channel}| ${userstate['display-name']}: ${userstate['color']}");
+      print(
+          "${channel}| ${userstate['display-name']}: ${userstate['color']}, ${userstate['emotes']}");
 
       var newColor = userstate['color'];
       if (newColor == "") newColor = "#000000";
 
-      setState(() =>
-          messages.add(Message(userstate['display-name'], message, newColor)));
+      print(userstate['emotes'].runtimeType);
+      final messageWithEmotes = parseEmotes(message, userstate['emotes']);
+
+      print(messageWithEmotes);
+
+      setState(() => messages.add(Message(
+          userstate['display-name'], message, newColor, messageWithEmotes)));
     });
   }
 
@@ -136,30 +149,28 @@ class _ChatState extends State<ChatView> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Expanded(
-            child: SingleChildScrollView(
+            child: ListView(
               reverse: true,
-              child: Column(
-                mainAxisSize: MainAxisSize.max,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: messages
-                    .map(
-                      (e) => RichText(
-                        text: TextSpan(
-                          style: DefaultTextStyle.of(context).style,
-                          children: <TextSpan>[
-                            TextSpan(
-                                text: "${e.name}: ",
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: HexColor.fromHex(e.color),
-                                )),
-                            TextSpan(text: e.body),
-                          ],
+              children: [
+                for (final e in messages.reversed)
+                  Text.rich(
+                    TextSpan(
+                      children: [
+                        TextSpan(
+                          text: "${e.name}: ",
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: HexColor.fromHex(e.color),
+                          ),
                         ),
-                      ),
-                    )
-                    .toList(),
-              ),
+                        ...e.renderedContents,
+
+                        /// TODO:
+                        // parseEmotes()
+                      ],
+                    ),
+                  ),
+              ],
             ),
           ),
           MessageInput(widget.channelName, widget.userName, widget.oauthToken),
@@ -167,6 +178,46 @@ class _ChatState extends State<ChatView> {
       ),
     );
   }
+}
+
+List<InlineSpan> parseEmotes(String messageText, Map emoteSpec) {
+  final emoteIdByEmoteText = <String, String>{};
+
+  for (final e in emoteSpec.entries) {
+    final emoteId = e.key;
+    final spans = e.value;
+
+    for (final span in spans.sublist(0, 1)) {
+      final startIndex = int.parse(span.split('-').first);
+      final endIndex = int.parse(span.split('-').last);
+
+      final emoteText = messageText.substring(startIndex, endIndex + 1);
+
+      emoteIdByEmoteText[emoteText] = emoteId;
+    }
+  }
+
+  final words = messageText.split(' ');
+
+  final result = words.map<InlineSpan>((word) {
+    if (emoteIdByEmoteText.containsKey(word)) {
+      return WidgetSpan(
+        child: Padding(
+          padding: const EdgeInsets.only(right: 8.0),
+          child: Image.network(
+            "https://static-cdn.jtvnw.net/emoticons/v2/${emoteIdByEmoteText[word]}/default/light/3.0",
+            height: 18,
+          ),
+        ),
+      );
+    } else {
+      return TextSpan(text: word + " ");
+    }
+  }).toList();
+
+  print(emoteIdByEmoteText);
+
+  return result;
 }
 
 class MessageInput extends HookWidget {
