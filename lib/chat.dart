@@ -221,43 +221,64 @@ List<InlineSpan> parseEmotes(String messageText, Map emoteSpec) {
 }
 
 class MessageInput extends HookWidget {
-  var channelName;
-  var userName;
-  var oauthToken;
+  MessageInput(this.channelName, this.userName, this.oauthToken, {super.key});
+
+  final String channelName;
+
+  final String userName;
+
+  final String oauthToken;
 
   var client = http.Client();
-
-  MessageInput(this.channelName, this.userName, this.oauthToken);
 
   @override
   Widget build(BuildContext context) {
     final message = useState("");
-    // This widget is the home page of your application. It is stateful, meaning
-    // that it has a State object (defined below) that contains fields that affect
-    // how it looks.
-
-    // This class is the configuration for the state. It holds the values (in this
-    // case the title) provided by the parent (in this case the App widget) and
-    // used by the build method of the State. Fields in a Widget subclass are
-    // always marked "final".
+    final controller = useTextEditingController();
 
     return TextField(
+      controller: controller,
       decoration: InputDecoration(
         border: OutlineInputBorder(),
         hintText: 'Choose Channel',
       ),
       onChanged: (current) => message.value = current.toString(),
-      onSubmitted: (current) async {
+      onEditingComplete: () async {
         print("CURRENTLY SENDING");
-        print(current);
+        print(controller.text);
 
         var postUrl =
             "https://hacky-chat-sends.vercel.app/api/chat-hell?channel=${channelName}&message=${Uri.encodeComponent(message.value)}&username=${userName}&token=${oauthToken}";
 
-        print(postUrl);
+        // print(postUrl);
 
-        var res = await Dio().get(postUrl);
-        print(res);
+        controller.clear();
+
+        /// Alternative A
+        // http.post(Uri.parse(
+        //   "https://hacky-chat-sends.vercel.app/api/chat-hell"
+        //   "?channel=$channelName"
+        //   "&message=${message.value}"
+        //   "&username=$userName"
+        //   "&token=$oauthToken",
+        // ));
+
+        /// Alternative B
+        // final url =
+        //     Uri.parse("https://hacky-chat-sends.vercel.app/api/chat-hell")
+        //         .replace(
+        //   queryParameters: {
+        //     'channel': channelName,
+        //     'message': message.value,
+        //     'username': userName,
+        //     'token': oauthToken,
+        //   },
+        // );
+
+        // print(url);
+
+        // var res = await Dio().get(postUrl);
+        // print(res);
       },
     );
   }
